@@ -3,9 +3,9 @@ set -e
 
 WP_PATH=/var/www/html
 
-DB_PASS="$(cat /run/secrets/db_password)"
-WP_ADMIN_PASS="$(cat /run/secrets/wp_admin_password)"
-WP_USER_PASS="$(cat /run/secrets/wp_user_password)"
+DB_PASS="$(cat /run/secrets/mariadb_password)"
+WP_ADMIN_PASS="$(cat /run/secrets/wordpress_admin_password)"
+WP_USER_PASS="$(cat /run/secrets/wordpress_user_password)"
 
 # Espera (no máximo ~60s) que o MariaDB aceite ligações.
 tries=0

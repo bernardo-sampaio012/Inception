@@ -39,6 +39,8 @@ services:
     restart: always
     depends_on:
       - wordpress
+    env_file:
+      - .env
     networks:
       - inception
     ports:
@@ -66,10 +68,10 @@ volumes:
 
 secrets:
   mariadb_root_password:
-    file: ./secrets/mariadb_root_password.txt
+    file: ../secrets/mariadb_root_password.txt
   mariadb_password:
-    file: ./secrets/mariadb_password.txt
+    file: ../secrets/mariadb_password.txt
   wordpress_admin_password:
-    file: ./secrets/wordpress_admin_password.txt
+    file: ../secrets/wordpress_admin_password.txt
   wordpress_user_password:
-    file: ./secrets/wordpress_user_password.txt
+    file: ../secrets/wordpress_user_password.txt
