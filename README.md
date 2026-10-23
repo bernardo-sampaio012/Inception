@@ -12,8 +12,7 @@ Debian bookworm. Data persists in two named volumes stored under
 
 ## Instructions
 1. Add the domain: `echo "127.0.0.1 bsampaio.42.fr" | sudo tee -a /etc/hosts`
-2. Create `srcs/.env` (see `srcs/.env.example`) and the files in `secrets/`
-   (see DEV_DOC.md).
+2. Create `srcs/.env` and the files in `secrets/`, as described in DEV_DOC.md.
 3. Run `make` to build and start everything.
 4. Open https://bsampaio.42.fr (accept the self-signed certificate).
 5. `make down` stops it, `make fclean` removes everything including data.
@@ -55,6 +54,8 @@ directly. We use named volumes, with `driver_opts` placing their data in
 - WP-CLI handbook: https://make.wordpress.org/cli/handbook/
 - MariaDB documentation: https://mariadb.com/kb/en/documentation/
 
-AI usage: an AI assistant was used as a tutor to review the project against
-the subject, draft reference configurations and generate a test checklist.
-All files were then rewritten, tested and understood by the author.
+AI usage: an AI assistant as Claude IA was used as a tutor for this project. It was used to
+review the project structure against the subject, to propose reference
+versions of the Dockerfiles, the init scripts, the Docker Compose file and the
+documentation, to explain Docker, NGINX, TLS and PHP-FPM concepts, to suggest
+a test checklist and to help diagnose build and runtime errors.

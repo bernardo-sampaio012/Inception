@@ -79,7 +79,7 @@ make ps                                   # container status
 make logs                                 # logs of all services
 docker logs <mariadb|wordpress|nginx>     # logs of one service
 docker exec -it <service> bash            # shell inside a container
-docker-compose --env-file srcs/.env -f srcs/docker-compose.yml config   # check the resolved configuration
+docker compose --env-file srcs/.env -f srcs/docker-compose.yml config   # check the resolved configuration
 docker volume ls                          # list volumes
 docker volume inspect srcs_mariadb_data   # show where a volume stores data
 docker network inspect srcs_inception     # show containers on the network

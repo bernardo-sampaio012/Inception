@@ -20,7 +20,9 @@
 ## Credentials
 - Non-secret settings (usernames, domain): `srcs/.env`
 - Passwords: files in `secrets/` (never committed to git).
-- WordPress users: administrator `boss_bsampaio`, author `visitor`.
+- WordPress users: administrator `boss_bsampaio`, author `bernardo`.
+- To read a password: `cat secrets/wordpress_admin_password.txt` (same for the other files).
+- Passwords are applied the first time the services start. To change them, edit the files in `secrets/` and run `make fclean && make` (this deletes all data). WordPress users can also change their password in the admin panel.
 
 ## Check that everything works
 - `make ps`: three containers should be `Up`.
