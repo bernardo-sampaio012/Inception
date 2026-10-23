@@ -3,54 +3,50 @@
 # Faz o script parar se um comando falhar.
 set -e
 
-# Verifica se a base de dados ainda não foi inicializada.
+# Lê as passwords dos Docker secrets (ficheiros em /run/secrets).
+MYSQL_PASSWORD="$(cat /run/secrets/mariadb_password)"
+MYSQL_ROOT_PASSWORD="$(cat /run/secrets/mariadb_root_password)"
+
+# O volume vem do host e pode pertencer a outro utilizador.
+# O MariaDB corre como "mysql" e precisa de escrever aqui.
+chown -R mysql:mysql /var/lib/mysql /run/mysqld
+
+# 1) Cria as tabelas internas do MariaDB, se ainda não existirem.
 if [ ! -d "/var/lib/mysql/mysql" ]; then
-    echo "Initializing the MariaDB..."
-
-    # Cria as tabelas internas necessárias para o MariaDB funcionar.
-    # Define o utilizador e o directório onde os dados serão guardados.
+    echo "Installing MariaDB system tables..."
     mariadb-install-db --user=mysql --datadir=/var/lib/mysql
+fi
 
-    # Inicia o MariaDB temporariamente, sem ligações pela rede.
-    # O socket permite a comunicação local com o servidor.
-    # O & executa o processo em segundo plano.
+# 2) Configura a base de dados do WordPress, se ainda não existir.
+if [ ! -d "/var/lib/mysql/${MYSQL_DATABASE}" ]; then
+    echo "Configuring database and users..."
+
+    # Servidor temporário, só por socket local (sem rede).
     mariadbd --user=mysql --skip-networking --socket=/run/mysqld/mysqld.sock &
-
-    # Guarda o PID (identificador do processo) do MariaDB temporário.
     pid="$!"
 
-    # Espera até o MariaDB estar pronto para receber comandos.
+    # Espera até 30 segundos que o servidor responda.
+    tries=0
     until mariadb-admin --socket=/run/mysqld/mysqld.sock ping --silent; do
-        # Espera um segundo antes de verificar novamente.
+        tries=$((tries + 1))
+        if [ "$tries" -ge 30 ]; then
+            echo "MariaDB did not start" >&2
+            exit 1
+        fi
         sleep 1
     done
 
-    # Liga-se ao MariaDB pelo socket e executa os comandos SQL abaixo.
     mariadb --socket=/run/mysqld/mysqld.sock --user=root <<-SQL
-        -- Cria a base de dados do WordPress, se ainda não existir.
         CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;
-
-        -- Cria o utilizador que o WordPress usará para aceder à base de dados.
         CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';
-
-        -- Dá ao utilizador permissões sobre a base de dados do WordPress.
         GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'%';
-
-        -- Define a palavra-passe do administrador root local.
         ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
-
-        -- Aplica as alterações às permissões.
         FLUSH PRIVILEGES;
 SQL
 
-    # Desliga o MariaDB temporário usando a palavra-passe do root.
     mariadb-admin --socket=/run/mysqld/mysqld.sock --user=root --password="${MYSQL_ROOT_PASSWORD}" shutdown
-
-    # Espera que o processo temporáio termine.
-    # O || true evita que o script pare se o processo terminar com erro.
     wait "$pid" || true
 fi
 
-# Inicia o MariaDB em primeiro plano para o container continuar activo.
-# O exec substitui o processo do script pelo servidor MariaDB.
+# Servidor definitivo em primeiro plano. O exec faz dele o PID 1.
 exec mariadbd --user=mysql --console
